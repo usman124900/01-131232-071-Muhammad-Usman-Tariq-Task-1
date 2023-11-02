@@ -1,0 +1,102 @@
+#include <iostream>
+#include<string>
+#include<vector>
+#include <ctime>
+
+class Book {
+private:
+    std::string title;
+    bool available;
+    time_t returnDate;
+
+public:
+    Book(std::string title) : title(title), available(true), returnDate(0) {}
+
+    std::string getTitle() const {
+        return title;
+    }
+
+    bool isAvailable() const {
+        return available;
+    }
+
+    void borrowBook() {
+        available = false;
+        time_t now = time(0);
+        returnDate = now + 7 * 24 * 60 * 60; 
+    }
+
+    void returnBook() {
+        available = true;
+        returnDate = 0;
+    }
+
+    bool isOverdue() const {
+        if (!available) {
+            time_t now = time(0);
+            return now > returnDate;
+        }
+        return false;
+    }
+
+    int calculateFine() const {
+        if (isOverdue()) {
+            time_t now = time(0);
+            int daysOverdue = (now - returnDate) / (24 * 60 * 60);
+            return daysOverdue;
+        }
+        return 0;
+    }
+};
+
+class Library {
+private:
+    std::vector<Book> books;
+
+public:
+    void addBook(std::string title) {
+        books.push_back(Book(title));
+    }
+
+    void borrowBook(std::string title) {
+        for (Book& book : books) {
+            if (book.getTitle() == title && book.isAvailable()) {
+                book.borrowBook();
+                std::cout << "You have successfully borrowed " << title << "." << std::endl;
+                return;
+            }
+        }
+        std::cout << "Sorry, " << title << " is not available for borrowing." << std::endl;
+    }
+
+    void returnBook(std::string title) {
+        for (Book& book : books) {
+            if (book.getTitle() == title && !book.isAvailable()) {
+                book.returnBook();
+                int fine = book.calculateFine();
+                if (fine > 0) {
+                    std::cout << "You have returned " << title << " late. You have a fine of $" << fine << "." << std::endl;
+                } else {
+                    std::cout << "You have successfully returned " << title << "." << std::endl;
+                }
+                return;
+            }
+        }
+        std::cout << "You did not borrow " << title << "." << std::endl;
+    }
+};
+
+int main() {
+    Library library;
+
+    library.addBook("Book 1");
+    library.addBook("Book 2");
+    library.addBook("Book 3");
+
+    library.borrowBook("Book 1");
+    library.borrowBook("Book 2");
+    library.returnBook("Book 1");
+    library.returnBook("Book 2");
+
+    return 0;
+}
